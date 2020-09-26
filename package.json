@@ -1,6 +1,6 @@
 {
   "name": "mortgage",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Project with different functions to calculate:\r  -The minimun payment of a mortgage\r  -The loan lenght of a mortgage\r  -Calculate the new loan lenght adding an extra payment\r  -The amortization table of the payoffs\r  -Calculate simple interest and amortizing interest",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -19,7 +19,12 @@
     "type": "git",
     "url": "git+https://github.com/alepaz/loan-utils.git"
   },
-  "keywords": ["Mortgage", "loan", "amortization", "interest"],
+  "keywords": [
+    "Mortgage",
+    "loan",
+    "amortization",
+    "interest"
+  ],
   "author": "Alejandro Paz",
   "license": "MIT",
   "bugs": {
