@@ -178,7 +178,7 @@ export const getLoanLength = (
  * @param {number} Interest rate annually
  * @param {number} Loan length express in months
  * @param {number} Extra payment add to the principal
- * @param {number} Date to start the payoff in miliseconds
+ * @param {number} Date to start the payoff in milliseconds
  * @param {number} Number of times interest compounds, default 12 (t)
  * @returns {object} Payoff Results
  */
@@ -272,13 +272,14 @@ export const getMortgagePayoff = (
   }
 
   results.data = payoffGrid;
+  console.log(results);
   return results;
 };
 
 /*
  * Calculate end date of the loan
  *
- * @param {number} date in miliseconds
+ * @param {number} date in milliseconds
  * @param {number} loan Length
  * @returns {string} end date of the loan
  */
