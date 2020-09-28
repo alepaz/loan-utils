@@ -87,3 +87,33 @@ export const getSimpleInterest = (balance: number, interestRate: number, timesIn
   if (timesInterestCompounds <= 0) throw new Error('Please provide a valid number of times interest compounds');
   return balance * (interestRate / timesInterestCompounds);
 };
+
+/*
+ * Calculate Total Amortizing Interest using a constant payment
+ *
+ * @param {number} loan/balance amount
+ * @param {number} Interest rate
+ * @param {number} mountly payment
+ * @returns {number} Total Interest
+ */
+export const getTotalAmortizingInterest = (
+  balance: number,
+  interestRate: number,
+  mountlyPayment: number,
+  timesInterestCompounds: number = 12,
+) => {
+  if (balance < 0) throw new Error('Please provide a valid loan/balance');
+  if (interestRate < 0) throw new Error('Please provide a valid interest rate');
+  if (mountlyPayment < 0) throw new Error('Please provide a valid mountly payment');
+  if (timesInterestCompounds <= 0) throw new Error('Please provide a valid number of times interest compounds');
+  let interest = 0;
+  let amortizingInterest = 0;
+
+  while(balance > 0){
+    interest = (interestRate / timesInterestCompounds) * balance;
+    amortizingInterest += interest;
+    balance -= mountlyPayment - interest;
+  }
+
+  return amortizingInterest;
+};
