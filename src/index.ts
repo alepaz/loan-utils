@@ -109,11 +109,37 @@ export const getTotalAmortizingInterest = (
   let interest = 0;
   let amortizingInterest = 0;
 
-  while(balance > 0){
+  while (balance > 0) {
     interest = (interestRate / timesInterestCompounds) * balance;
     amortizingInterest += interest;
     balance -= mountlyPayment - interest;
   }
 
   return amortizingInterest;
+};
+
+/*
+ * Calculate loan length
+ *
+ * @param {number} loan amount
+ * @param {number} Interest rate
+ * @param {number} mountly payment
+ * @param {number} extra payment added to the mountly payment
+ * @returns {number} Total Interest
+ */
+export const getLoanLength = (
+  loan: number,
+  interestRate: number,
+  mountlyPayment: number
+) => {
+  if (loan < 0) throw new Error('Please provide a valid loan/balance');
+  if (interestRate < 0) throw new Error('Please provide a valid interest rate');
+  if (mountlyPayment < 0) throw new Error('Please provide a valid mountly payment');
+  const monthlyInterestRate = interestRate / 12; // i = monthly interest rate
+  const loanLength = -(
+    Math.log(-((monthlyInterestRate * loan) / (mountlyPayment)) + 1) /
+    Math.log(1 + monthlyInterestRate)
+  );
+
+  return Math.ceil(parseInt(loanLength.toFixed(3)));
 };
