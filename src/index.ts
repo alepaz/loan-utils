@@ -89,6 +89,26 @@ export const getSimpleInterest = (balance: number, interestRate: number, timesIn
 };
 
 /*
+ * Total interest
+ *
+ * Function to calculate the total interest of a loan with the minimum monthly payment
+ *
+ * @param {number} Loan amount
+ * @param {number} loan length 
+ * @param {number} Interest rate annually (c)
+ * @param {number} Number of times interest compounds, default 12 (t)
+ * @returns {number} Total interest
+ */
+
+export const getTotalInterest = (loan: number, interestRate: number, loanLength: number, timesInterestCompounds: number = 12) => {
+  if (loan < 0) throw new Error('Please provide a valid loan');
+  if (interestRate < 0) throw new Error('Please provide a valid interest rate');
+  if (loanLength < 0) throw new Error('Please provide a valid loan length');  
+  if (timesInterestCompounds <= 0) throw new Error('Please provide a valid number of times interest compounds');
+  return getMonthlyPayment(loan, interestRate, loanLength, timesInterestCompounds) * loanLength - loan;
+};
+
+/*
  * Calculate Total Amortizing Interest using a constant payment
  *
  * @param {number} loan/balance amount
