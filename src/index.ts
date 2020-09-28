@@ -59,5 +59,31 @@ export const getLoanBalance = (
   if (timesInterestCompounds <= 0) throw new Error('Please provide a valid number of times interest compounds');
   if (periodElapsedMonths < 0) throw new Error('Please provide a valid number of Period of elapsed months');
   const interest = interestRate / timesInterestCompounds;
-  return loan * ((Math.pow(1 + interest, loanLength) - Math.pow(1 + interest, periodElapsedMonths)) / (Math.pow(1 + interest, loanLength) - 1));
+  return (
+    loan *
+    ((Math.pow(1 + interest, loanLength) - Math.pow(1 + interest, periodElapsedMonths)) /
+      (Math.pow(1 + interest, loanLength) - 1))
+  );
+};
+
+/*
+ * Simple Interest
+ *
+ * Function to calculate the remaining loan balance of a fixed payment loan after a period of months
+ *
+ * i = L (c)
+ *
+ * i = L (c/t)
+ *
+ * @param {number} Balance / Loan in the first operation (L)
+ * @param {number} Interest rate annually (c)
+ * @param {number} Number of times interest compounds, default 12 (t)
+ * @returns {number} interest
+ */
+
+export const getSimpleInterest = (balance: number, interestRate: number, timesInterestCompounds: number = 12) => {
+  if (balance < 0) throw new Error('Please provide a valid loan/balance');
+  if (interestRate < 0) throw new Error('Please provide a valid interest rate');
+  if (timesInterestCompounds <= 0) throw new Error('Please provide a valid number of times interest compounds');
+  return balance * (interestRate / timesInterestCompounds);
 };
