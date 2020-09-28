@@ -178,7 +178,7 @@ export const getLoanLength = (
  * @param {number} Interest rate annually
  * @param {number} Loan length express in months
  * @param {number} Extra payment add to the principal
- * @param {number} Date to start the payoff in miliseconds
+ * @param {number} Date to start the payoff in milliseconds
  * @param {number} Number of times interest compounds, default 12 (t)
  * @returns {object} Payoff Results
  */
@@ -196,9 +196,7 @@ export const getMortgagePayoff = (
   if (extraPrincipal < 0) throw new Error('Please provide a valid extra payment');
   if (timesInterestCompounds <= 0) throw new Error('Please provide a valid number of times interest compounds');
 
-  //Payoff results (Payments)
   const payoffGrid: any = [];
-
   let remainingLoan = loan;
   const defaultLoanLength = loanLength;
   const defaultInitialDate = initialDate;
@@ -215,7 +213,7 @@ export const getMortgagePayoff = (
     interestRate,
     defaultTotalInterest,
     totalInterestWithSavings: getTotalAmortizingInterest(loan, interestRate, mountlyPayment, timesInterestCompounds),
-    loan: loan,
+    loan,
     defaultLoanLength: loanLength,
     loanLength: newLoanLength,
     startDate: new Date(initialDate),
@@ -231,38 +229,34 @@ export const getMortgagePayoff = (
     const dateRow = date;
     const interestRow = getSimpleInterest(remainingLoan, interestRate);
     const principal = mountlyPayment - interestRow;
-    let principalExtra = principal + extraPrincipal;
+    const principalExtra = principal + extraPrincipal;
     let balance = remainingLoan - principalExtra;
 
     /*
      * Stop Condition
      */
     if (remainingLoan + interestRow < mountlyPayment + extraPrincipal) {
-      const row = {
+      payoffGrid.push({
         date: dateRow,
         interest: interestRow,
         principal,
         principalExtra: principalExtra + balance,
         balance: 0,
-        type: 'row',
-      };
-      payoffGrid.push(row);
-      remainingLoan = balance = 0; //remaining loan
+      });
+      remainingLoan = balance = 0;
       break;
     }
 
     /*
      * Add row to the payoff Grid
      */
-    const row = {
+    payoffGrid.push({
       date: dateRow,
       interest: interestRow,
       principal,
       principalExtra,
       balance,
-      type: 'row',
-    };
-    payoffGrid.push(row);
+    });
 
     /*
      * Update conditions for next iteration
@@ -272,13 +266,14 @@ export const getMortgagePayoff = (
   }
 
   results.data = payoffGrid;
+  console.log(results);
   return results;
 };
 
 /*
  * Calculate end date of the loan
  *
- * @param {number} date in miliseconds
+ * @param {number} date in milliseconds
  * @param {number} loan Length
  * @returns {string} end date of the loan
  */
