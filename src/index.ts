@@ -94,16 +94,21 @@ export const getSimpleInterest = (balance: number, interestRate: number, timesIn
  * Function to calculate the total interest of a loan with the minimum monthly payment
  *
  * @param {number} Loan amount
- * @param {number} loan length 
+ * @param {number} loan length
  * @param {number} Interest rate annually (c)
  * @param {number} Number of times interest compounds, default 12 (t)
  * @returns {number} Total interest
  */
 
-export const getTotalInterest = (loan: number, interestRate: number, loanLength: number, timesInterestCompounds: number = 12) => {
+export const getTotalInterest = (
+  loan: number,
+  interestRate: number,
+  loanLength: number,
+  timesInterestCompounds: number = 12,
+) => {
   if (loan < 0) throw new Error('Please provide a valid loan');
   if (interestRate < 0) throw new Error('Please provide a valid interest rate');
-  if (loanLength < 0) throw new Error('Please provide a valid loan length');  
+  if (loanLength < 0) throw new Error('Please provide a valid loan length');
   if (timesInterestCompounds <= 0) throw new Error('Please provide a valid number of times interest compounds');
   return getMonthlyPayment(loan, interestRate, loanLength, timesInterestCompounds) * loanLength - loan;
 };
@@ -114,6 +119,7 @@ export const getTotalInterest = (loan: number, interestRate: number, loanLength:
  * @param {number} loan/balance amount
  * @param {number} Interest rate
  * @param {number} mountly payment
+ * @param {number} Number of times interest compounds, default 12 (t)
  * @returns {number} Total Interest
  */
 export const getTotalAmortizingInterest = (
@@ -144,7 +150,7 @@ export const getTotalAmortizingInterest = (
  * @param {number} loan amount
  * @param {number} Interest rate
  * @param {number} mountly payment
- * @param {number} extra payment added to the mountly payment
+ * @param {number} Number of times interest compounds, default 12 (t)
  * @returns {number} Total Interest
  */
 export const getLoanLength = (
@@ -156,13 +162,13 @@ export const getLoanLength = (
   if (loan < 0) throw new Error('Please provide a valid loan/balance');
   if (interestRate < 0) throw new Error('Please provide a valid interest rate');
   if (mountlyPayment < 0) throw new Error('Please provide a valid mountly payment');
+  if (timesInterestCompounds <= 0) throw new Error('Please provide a valid number of times interest compounds');
   const monthlyInterestRate = interestRate / timesInterestCompounds; // i = monthly interest rate
   const loanLength = -(
-    Math.log(-((monthlyInterestRate * loan) / (mountlyPayment)) + 1) /
-    Math.log(1 + monthlyInterestRate)
+    Math.log(-((monthlyInterestRate * loan) / mountlyPayment) + 1) / Math.log(1 + monthlyInterestRate)
   );
 
-  return Math.ceil(parseInt(loanLength.toFixed(3)));
+  return Math.ceil(parseFloat(loanLength.toFixed(5)));
 };
 
 /*
@@ -173,9 +179,111 @@ export const getLoanLength = (
  * @param {number} Loan length express in months
  * @param {number} Extra payment add to the principal
  * @param {number} Date to start the payoff in miliseconds
- * @param {number} Amount of payoff
+ * @param {number} Number of times interest compounds, default 12 (t)
  * @returns {object} Payoff Results
  */
-export const getMortgagePayoff = () => {
+export const getMortgagePayoff = (
+  loan: number,
+  interestRate: number,
+  loanLength: number,
+  extraPrincipal: number = 0,
+  initialDate: number = Date.now(),
+  timesInterestCompounds: number = 12,
+) => {
+  if (loan < 0) throw new Error('Please provide a valid loan');
+  if (interestRate < 0) throw new Error('Please provide a valid interest rate');
+  if (loanLength < 0) throw new Error('Please provide a valid Loan Length');
+  if (extraPrincipal < 0) throw new Error('Please provide a valid extra payment');
+  if (timesInterestCompounds <= 0) throw new Error('Please provide a valid number of times interest compounds');
 
+  //Payoff results (Payments)
+  const payoffGrid: any = [];
+
+  let remainingLoan = loan;
+  const defaultLoanLength = loanLength;
+  const defaultInitialDate = initialDate;
+  const date = new Date(initialDate);
+  if (isNaN(date.getTime())) throw new Error('Please provide a valid date');
+
+  const mountlyPayment = getMonthlyPayment(loan, interestRate, loanLength, timesInterestCompounds);
+  const defaultTotalInterest = getTotalInterest(loan, interestRate, loanLength, timesInterestCompounds);
+  const newLoanLength = getLoanLength(loan, interestRate, mountlyPayment + extraPrincipal);
+
+  const results = {
+    mountlyPayment,
+    extraPrincipal,
+    interestRate,
+    defaultTotalInterest,
+    totalInterestWithSavings: getTotalAmortizingInterest(loan, interestRate, mountlyPayment, timesInterestCompounds),
+    loan: loan,
+    defaultLoanLength: loanLength,
+    loanLength: newLoanLength,
+    startDate: new Date(initialDate),
+    endDate: getEndDate(defaultInitialDate, newLoanLength),
+    defaultEndDate: getEndDate(defaultInitialDate, defaultLoanLength),
+    data: {},
+  };
+
+  /*
+   * Payoff grid
+   */
+  for (let i = 0; i < loanLength; i++) {
+    const dateRow = date;
+    const interestRow = getSimpleInterest(remainingLoan, interestRate);
+    const principal = mountlyPayment - interestRow;
+    let principalExtra = principal + extraPrincipal;
+    let balance = remainingLoan - principalExtra;
+
+    /*
+     * Stop Condition
+     */
+    if (remainingLoan + interestRow < mountlyPayment + extraPrincipal) {
+      const row = {
+        date: dateRow,
+        interest: interestRow,
+        principal,
+        principalExtra: principalExtra + balance,
+        balance: 0,
+        type: 'row',
+      };
+      payoffGrid.push(row);
+      remainingLoan = balance = 0; //remaining loan
+      break;
+    }
+
+    /*
+     * Add row to the payoff Grid
+     */
+    const row = {
+      date: dateRow,
+      interest: interestRow,
+      principal,
+      principalExtra,
+      balance,
+      type: 'row',
+    };
+    payoffGrid.push(row);
+
+    /*
+     * Update conditions for next iteration
+     */
+    remainingLoan = balance;
+    date.setMonth(date.getMonth() + 1);
+  }
+
+  results.data = payoffGrid;
+  return results;
+};
+
+/*
+ * Calculate end date of the loan
+ *
+ * @param {number} date in miliseconds
+ * @param {number} loan Length
+ * @returns {string} end date of the loan
+ */
+function getEndDate(startDate: number, loanLength: number) {
+  const date = new Date(startDate);
+  date.setMonth(date.getMonth() + loanLength - 1);
+  return date;
 }
