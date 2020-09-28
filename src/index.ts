@@ -150,12 +150,13 @@ export const getTotalAmortizingInterest = (
 export const getLoanLength = (
   loan: number,
   interestRate: number,
-  mountlyPayment: number
+  mountlyPayment: number,
+  timesInterestCompounds: number = 12,
 ) => {
   if (loan < 0) throw new Error('Please provide a valid loan/balance');
   if (interestRate < 0) throw new Error('Please provide a valid interest rate');
   if (mountlyPayment < 0) throw new Error('Please provide a valid mountly payment');
-  const monthlyInterestRate = interestRate / 12; // i = monthly interest rate
+  const monthlyInterestRate = interestRate / timesInterestCompounds; // i = monthly interest rate
   const loanLength = -(
     Math.log(-((monthlyInterestRate * loan) / (mountlyPayment)) + 1) /
     Math.log(1 + monthlyInterestRate)
@@ -163,3 +164,18 @@ export const getLoanLength = (
 
   return Math.ceil(parseInt(loanLength.toFixed(3)));
 };
+
+/*
+ * Calculate the Payoff Results
+ *
+ * @param {number} Loan Amount
+ * @param {number} Interest rate annually
+ * @param {number} Loan length express in months
+ * @param {number} Extra payment add to the principal
+ * @param {number} Date to start the payoff in miliseconds
+ * @param {number} Amount of payoff
+ * @returns {object} Payoff Results
+ */
+export const getMortgagePayoff = () => {
+
+}
