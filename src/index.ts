@@ -226,7 +226,7 @@ export const getMortgagePayoff = (
    * Payoff grid
    */
   for (let i = 0; i < loanLength; i++) {
-    const dateRow = date;
+    const dateRow = new Date(date);
     const interestRow = getSimpleInterest(remainingLoan, interestRate);
     const principal = mountlyPayment - interestRow;
     const principalExtra = principal + extraPrincipal;
